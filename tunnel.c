@@ -3,19 +3,21 @@
 void playerAction(int playerPos[2], char playerKey, char *lastInput, int *lifes, int *score, int totalLines, int playerSpawnPointCol[], int *godMode);
 void makeTunnel(int *tunnelDirection, int *tunnelEdgeLeft, int *tunnelEdgeRight, int *totalLines, int *score, int playerSpawnPointCol[]);
 void printScore(int lines, int score, char scoreLevelBuffer[31]);
-
+char startMenu();
 
 int main(void){
 
 	// Levelscreen
 	initscr();
 	noecho();
-	nodelay(stdscr, TRUE);
 	curs_set(0);
 	cbreak();
 
 
-	while(1){
+	while(startMenu() != 'q'){
+		clear();
+		refresh();
+		nodelay(stdscr, TRUE);
 		// Playersettings/daten
 		char playerInput = 'a';
 		char lastInput = 'a';
@@ -52,7 +54,14 @@ int main(void){
 
 
 
-		while((playerInput = getch()) != 'r'){
+		while((playerInput = getch()) != 'm'){
+
+			if(playerInput == 'p'){
+				nodelay(stdscr, TRUE);
+				while((playerInput = getch()) == ERR){
+				}
+			}
+
 
 			makeTunnel(&tunnelDirection, &tunnelEdgeLeft, &tunnelEdgeRight, &totalLines, &score, playerSpawnPointCol);
 			printScore(totalLines, score, scoreLevelBuffer);
@@ -60,6 +69,7 @@ int main(void){
 			refresh();
 			napms(gameSpeed);
 		}
+		nodelay(stdscr, FALSE);
 	}
 	endwin();
 	return 0;
@@ -98,8 +108,10 @@ void playerAction(int playerPos[2], char playerKey, char *lastInput, int *lifes,
 
 	}else if(playerInput == 'h'){
 		*godMode = (*godMode * (-1));
-	}
 
+	}else if(playerInput == ' '){
+		*lastInput = ' ';
+	}
 
 	if ( ((mvinch(playerPos[0]-1, playerPos[1]) & A_CHARTEXT) != ' ') && (*godMode != 1) ){
 		for(int i = 0; i < 5; i++){
@@ -164,7 +176,20 @@ void makeTunnel(int *tunnelDirection, int *tunnelEdgeLeft, int *tunnelEdgeRight,
 }
 
 void printScore(int lines, int score, char scoreLevelBuffer[31]) {
-	mvprintw(1, 48, scoreLevelBuffer);
-	mvinstr(0, 48, scoreLevelBuffer);
-	mvprintw(0, 48, "    Lines: %4i Score: %4i    ", lines, score);
+	mvprintw(1, (COLS-33), scoreLevelBuffer);
+	mvinstr(0, (COLS-33), scoreLevelBuffer);
+	mvprintw(0, (COLS-33), "    Lines: %4i Score: %4i    ", lines, score);
+}
+
+char startMenu(){
+	clear();
+	refresh();
+	nodelay(stdscr, FALSE);
+	char gameName[] = "Tunnel (anykey)";
+	int gameNameLength = sizeof(gameName);
+	mvprintw( (LINES/2), ((COLS/2)-(gameNameLength/2)), gameName);
+	char quit[] = "quit (q)";
+	int quitLength = sizeof(quit);
+	mvprintw( ( (LINES/2) + 1), ((COLS/2)-(quitLength/2)), quit);
+	return getch();
 }
