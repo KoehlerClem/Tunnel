@@ -13,7 +13,7 @@ int main(void){
 	curs_set(0);
 	cbreak();
 
-
+    //game loop
 	while(startMenu() != 'q'){
 		clear();
 		refresh();
