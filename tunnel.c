@@ -1,9 +1,10 @@
 #include "tunnel.h"
 
-void playerAction(int playerPos[2], char playerKey, char *lastInput, int *lifes, int *score, int totalLines, int playerSpawnPointCol[], int *godMode);
-void makeTunnel(int *tunnelDirection, int *tunnelEdgeLeft, int *tunnelEdgeRight, int *totalLines, int *score, int playerSpawnPointCol[]);
-void printScore(int lines, int score, char scoreLevelBuffer[31]);
+void playerAction(int playerPos[2], char playerKey, char *lastInput, int *lifes, int totalLines, int playerSpawnPointCol[], int *godMode);
+void makeTunnel(int *tunnelDirection, int *tunnelEdgeLeft, int *tunnelEdgeRight, int *totalLines, int playerSpawnPointCol[]);
+void printScore(int lines, char scoreLevelBuffer[31], int lifes);
 char startMenu();
+void randomMode(int *tunnelDirection);
 
 int main(void){
 
@@ -12,9 +13,9 @@ int main(void){
 	noecho();
 	curs_set(0);
 	cbreak();
-
+	int gameMode;
     //game loop
-	while(startMenu() != 'q'){
+	while((gameMode = startMenu()) != 'q'){
 		clear();
 		refresh();
 		nodelay(stdscr, TRUE);
@@ -27,9 +28,8 @@ int main(void){
 			playerSpawnPointCol[i] = (COLS/2);
 		}
 		int playerPos[2] = { playerSpawnPointLine, playerSpawnPointCol[0]};
-		int gameSpeed = 20;
-		int lifes = 1;
-		int score = 0;
+		int gameSpeed = 33;
+		int lifes = 5;
 		int godMode = -1;
 
 		// Tunnelsettings/daten
@@ -52,30 +52,44 @@ int main(void){
 		}
 		refresh();
 
-
-
-		while((playerInput = getch()) != 'm'){
+		// GAME LOOP
+		while( ( (playerInput = getch()) != 'm') && (lifes > -1)){
 
 			if(playerInput == 'p'){
-				nodelay(stdscr, TRUE);
-				while((playerInput = getch()) == ERR){
-				}
+				nodelay(stdscr, FALSE);
+				playerInput = getch();
+
 			}
+			nodelay(stdscr, TRUE);
 
-
-			makeTunnel(&tunnelDirection, &tunnelEdgeLeft, &tunnelEdgeRight, &totalLines, &score, playerSpawnPointCol);
-			printScore(totalLines, score, scoreLevelBuffer);
-			playerAction(playerPos, playerInput, &lastInput, &lifes, &score, totalLines, playerSpawnPointCol, &godMode);
+			makeTunnel(&tunnelDirection, &tunnelEdgeLeft, &tunnelEdgeRight, &totalLines, playerSpawnPointCol);
+			if(gameMode == 'r') {
+				randomMode(&tunnelDirection);
+			}
+			printScore(totalLines, scoreLevelBuffer, lifes);
+			playerAction(playerPos, playerInput, &lastInput, &lifes, totalLines, playerSpawnPointCol, &godMode);
 			refresh();
 			napms(gameSpeed);
 		}
 		nodelay(stdscr, FALSE);
+
+		FILE *f = fopen("hightscore.txt", "a");
+		if (f == NULL)
+		{
+		    printf("Error opening file!\n");
+		    exit(1);
+		}
+		int i = 1;
+		fprintf(f, "Player: %-20s Hightscore: %09i\n", "Testplayer",totalLines);
+		fclose(f);
+
+
 	}
 	endwin();
 	return 0;
 }
 
-void playerAction(int playerPos[2], char playerKey, char *lastInput, int *lifes, int *score, int totalLines, int playerSpawnPointCol[(LINES-4)], int *godMode){
+void playerAction(int playerPos[2], char playerKey, char *lastInput, int *lifes, int totalLines, int playerSpawnPointCol[(LINES-4)], int *godMode){
 	// löscht die alte Spielerfigur
 	mvaddch(playerPos[0], playerPos[1], ' ');
 
@@ -125,7 +139,6 @@ void playerAction(int playerPos[2], char playerKey, char *lastInput, int *lifes,
 			napms(100);
 		}
 		(*lifes)--;
-		*score = 0;
 		playerPos[0] = (LINES-4);
 		playerPos[1] = ( playerSpawnPointCol[( totalLines % (LINES-4) )] );
 		mvaddch(playerPos[0]-1, playerPos[1], 'W');
@@ -136,7 +149,7 @@ void playerAction(int playerPos[2], char playerKey, char *lastInput, int *lifes,
 
 }
 
-void makeTunnel(int *tunnelDirection, int *tunnelEdgeLeft, int *tunnelEdgeRight, int *totalLines, int *score, int playerSpawnPointCol[LINES-4]){
+void makeTunnel(int *tunnelDirection, int *tunnelEdgeLeft, int *tunnelEdgeRight, int *totalLines, int playerSpawnPointCol[LINES-4]){
 
 	move(LINES-1, 0);
 	deleteln();
@@ -146,7 +159,6 @@ void makeTunnel(int *tunnelDirection, int *tunnelEdgeLeft, int *tunnelEdgeRight,
 	int colBuffer2 = ( (*totalLines) + (LINES-6)) % (LINES-4);
 
 	(*totalLines)++;
-	(*score)++;
 
 	if(*tunnelDirection == 0){ // nach Links
 		(*tunnelEdgeLeft)--;
@@ -182,28 +194,36 @@ void makeTunnel(int *tunnelDirection, int *tunnelEdgeLeft, int *tunnelEdgeRight,
 			}
 		}
 	}
+}
+
+void printScore(int lines, char scoreLevelBuffer[31], int lifes) {
+	mvprintw(1, (COLS-33), scoreLevelBuffer);
+	mvinstr(0, (COLS-33), scoreLevelBuffer);
+	mvprintw(0, (COLS-33), "  Score: %09i Lifes: %02i  ", lines, lifes);
+}
+
+char startMenu(){
+	clear();
+	char gameName[] = "Tunnel -chillmode (anykey)";
+	int gameNameLength = sizeof(gameName);
+	mvprintw( (LINES/2), ((COLS/2)-(gameNameLength/2)), gameName);
+
+	char gameName1[] = "Tunnel -random (r)";
+	int gameNameLength1 = sizeof(gameName1);
+	mvprintw( (LINES/2) + 1, ((COLS/2)-(gameNameLength1/2)), gameName1);
+
+
+	char quit[] = "quit (q)";
+	int quitLength = sizeof(quit);
+	mvprintw( ( (LINES/2) + 2), ((COLS/2)-(quitLength/2)), quit);
+	refresh();
+	return getch();
+}
+
+void randomMode(int *tunnelDirection){
 	switch (rand()% 35) {
 		case 0: *tunnelDirection = 0; break;
 		case 1: *tunnelDirection = 1; break;
 		default: break;
 	}
-}
-
-void printScore(int lines, int score, char scoreLevelBuffer[31]) {
-	mvprintw(1, (COLS-33), scoreLevelBuffer);
-	mvinstr(0, (COLS-33), scoreLevelBuffer);
-	mvprintw(0, (COLS-33), "    Lines: %4i Score: %4i    ", lines, score);
-}
-
-char startMenu(){
-	clear();
-	refresh();
-	nodelay(stdscr, FALSE);
-	char gameName[] = "Tunnel (anykey)";
-	int gameNameLength = sizeof(gameName);
-	mvprintw( (LINES/2), ((COLS/2)-(gameNameLength/2)), gameName);
-	char quit[] = "quit (q)";
-	int quitLength = sizeof(quit);
-	mvprintw( ( (LINES/2) + 1), ((COLS/2)-(quitLength/2)), quit);
-	return getch();
 }
