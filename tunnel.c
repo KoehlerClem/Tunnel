@@ -1,4 +1,4 @@
-#include <ncurses.h>
+#include "tunnel.h"
 
 void playerAction(int playerPos[2], char playerKey, char *lastInput, int *lifes, int *score, int totalLines, int playerSpawnPointCol[], int *godMode);
 void makeTunnel(int *tunnelDirection, int *tunnelEdgeLeft, int *tunnelEdgeRight, int *totalLines, int *score, int playerSpawnPointCol[]);
@@ -19,15 +19,15 @@ int main(void){
 		refresh();
 		nodelay(stdscr, TRUE);
 		// Playersettings/daten
-		char playerInput = 'a';
-		char lastInput = 'a';
+		char playerInput = ' ';
+		char lastInput = ' ';
 		int playerSpawnPointLine = (LINES-4);
 		int playerSpawnPointCol[playerSpawnPointLine];
 		for(int i = 0; i < playerSpawnPointLine; i++){
 			playerSpawnPointCol[i] = (COLS/2);
 		}
 		int playerPos[2] = { playerSpawnPointLine, playerSpawnPointCol[0]};
-		int gameSpeed = 30;
+		int gameSpeed = 20;
 		int lifes = 1;
 		int score = 0;
 		int godMode = -1;
@@ -116,7 +116,7 @@ void playerAction(int playerPos[2], char playerKey, char *lastInput, int *lifes,
 	if ( ((mvinch(playerPos[0]-1, playerPos[1]) & A_CHARTEXT) != ' ') && (*godMode != 1) ){
 		for(int i = 0; i < 5; i++){
 
-			mvaddch(playerPos[0]-1, playerPos[1], 'W');
+			mvaddch(playerPos[0]-1, playerPos[1], 'x');
 			refresh();
 			napms(100);
 
@@ -160,7 +160,7 @@ void makeTunnel(int *tunnelDirection, int *tunnelEdgeLeft, int *tunnelEdgeRight,
 			}
 		}
 		if(*tunnelEdgeLeft < 2) *tunnelDirection = 1;
-	}else{ // nach Rechts
+	}else if (*tunnelDirection == 1){ // nach Rechts
 		(*tunnelEdgeLeft)++;
 		(*tunnelEdgeRight)++;
 		playerSpawnPointCol[colBuffer] = (playerSpawnPointCol[colBuffer2] + 1);
@@ -172,6 +172,20 @@ void makeTunnel(int *tunnelDirection, int *tunnelEdgeLeft, int *tunnelEdgeRight,
 			}
 		}
 		if(*tunnelEdgeRight > (COLS-3)) *tunnelDirection = 0;
+	}else{ // Geradeaus
+		playerSpawnPointCol[colBuffer] = playerSpawnPointCol[colBuffer2];
+		for(int i = 0; i < COLS; i++){
+			if( (i > *tunnelEdgeLeft) && (i < *tunnelEdgeRight)){
+				mvaddch(0, i, ' ');
+			} else {
+				mvaddch(0, i, '#');
+			}
+		}
+	}
+	switch (rand()% 35) {
+		case 0: *tunnelDirection = 0; break;
+		case 1: *tunnelDirection = 1; break;
+		default: break;
 	}
 }
 
