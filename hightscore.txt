@@ -1,9 +1,0 @@
-Player:           Testplayer 000000140
-Player:           Testplayer 000000779
-Player: Testplayer           000000070
-Player: Testplayer           Hightscore: 000000060
-Player: Testplayer           Hightscore: 000000675
-Player: Testplayer           Hightscore: 000000080
-Player: Testplayer           Hightscore: 000000270
-Player: Testplayer           Hightscore: 000002479
-Player: Testplayer           Hightscore: 000008041

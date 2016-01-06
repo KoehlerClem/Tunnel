@@ -1,2 +1,5 @@
-#include <ncurses.h>
-#include <stdlib.h>
+#ifndef TUNNEL_H
+#define TUNNEL_H
+void runLevel();
+void startGame();
+#endif
