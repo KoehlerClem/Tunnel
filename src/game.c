@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <ncurses.h>
-#include "level.h"
-#include "tunnel.h"
+
+#include "game.h"
+#include "leveltunnel.h"
 
 
 char printStartMenu();
@@ -17,9 +18,12 @@ void startGame(){
 	noecho();
 	curs_set(0);
 	cbreak();
-    //game loop
+
+	// Menu Loop
 	while((gameModeChoice = printStartMenu()) != 'q'){
-		runLevel(gameModeChoice);
+		switch(gameModeChoice){
+			default:runLevel(gameModeChoice);
+		}
 	}
 	endwin();
 	return;

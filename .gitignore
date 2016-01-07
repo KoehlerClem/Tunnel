@@ -2,3 +2,4 @@ a.out
 highscore.txt
 *.out
 *.o
+/src/terminal_time_terminator

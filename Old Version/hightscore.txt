@@ -1,0 +1,2 @@
+Player: Testplayer           Hightscore: 000001176
+Player: Testplayer           Hightscore: 000000064
