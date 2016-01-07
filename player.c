@@ -2,34 +2,29 @@
 #include "tunnel.h"
 #include "level.h"
 #include <ncurses.h>
+#include <stdlib.h>
 
-void initPlayer();
-void printPlayerAction(char playerInput);
 void movePlayer();
 int getLifes();
 
 static char playerInput;
 static char lastInput;
 static int playerSpawnPointLine;
-static int playerSpawnPointCol[];
-static int playerPos[];
-static int gameSpeed;
+static int playerSpawnPointCol;
+static int playerPos[2];
 static int lifes;
 static int godMode;
 
 // Setzt die Spielerdaten
 void initPlayer(){
-	char playerInput = ' ';
-	char lastInput = ' ';
-	int playerSpawnPointLine = (LINES-4);
-	int playerSpawnPointCol[playerSpawnPointLine];
-	for(int i = 0; i < playerSpawnPointLine; i++){
-		playerSpawnPointCol[i] = (COLS/2);
-	}
-	int playerPos[2] = { playerSpawnPointLine, playerSpawnPointCol[0]};
-	int gameSpeed = 33;
-	int lifes = 5;
-	int godMode = -1;
+	playerInput = 'a';
+	lastInput = ' ';
+	playerSpawnPointLine = (LINES-4);
+	playerSpawnPointCol = (COLS/2);
+	playerPos[0] = playerSpawnPointLine;
+	playerPos[1] = playerSpawnPointCol;
+	lifes = 5;
+	godMode = -1;
 }
 
 void printPlayerAction(char playerInput){
@@ -39,7 +34,7 @@ void printPlayerAction(char playerInput){
 
 	// checkt ob ein Spielerinput vorliegt und
 	// fals nicht wiederholt die letzte Bewegung
-	if(playerInput != ERR){
+	if(playerInput == ERR){
 		playerInput = lastInput;
 	}
 
@@ -85,11 +80,23 @@ void movePlayer(){
 			refresh();
 			napms(100);
 		}
-		(lifes)--;
-		playerPos[0] = (playerSpawnPointLine);
-		playerPos[1] = ( playerSpawnPointCol[( getTotalLines() % (playerSpawnPointLine) )] );
-		mvaddch(playerPos[0]-1, playerPos[1], 'W');
 
+		for(int i = 0; i < COLS; i++){
+			if( (mvinch(playerSpawnPointLine, i) & A_CHARTEXT) == ' '){
+				for(int a = i; a < COLS; a++){
+					if( ((mvinch(playerSpawnPointLine, a) & A_CHARTEXT) == '#') || (a == (COLS-1))){
+						playerSpawnPointCol = i + ((a-i)/2);
+						break;
+					}
+				}
+				break;
+			}
+		}
+
+		(lifes)--;
+		playerPos[0] = playerSpawnPointLine;
+		playerPos[1] = playerSpawnPointCol;
+		mvaddch(playerPos[0]-1, playerPos[1], 'W');
 	}else{
 		mvaddch(playerPos[0]-1, playerPos[1], 'W');
 	}

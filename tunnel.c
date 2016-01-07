@@ -9,15 +9,17 @@ char printStartMenu();
 // Startet das Tunnel Spiel
 void startGame(){
 
+	//Gamemode zzzzzz
+	int gameModeChoice;
+
 	// Levelscreen wird initializiert
 	initscr();
 	noecho();
 	curs_set(0);
 	cbreak();
-	int gameMode;
     //game loop
-	while((gameMode = printStartMenu()) != 'q'){
-		runLevel(gameMode);
+	while((gameModeChoice = printStartMenu()) != 'q'){
+		runLevel(gameModeChoice);
 	}
 	endwin();
 	return;
