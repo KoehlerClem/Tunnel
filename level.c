@@ -90,7 +90,7 @@ void levelLoop(){
 		printPlayerAction(playerInput);
 		refresh();
 		napms(gameSpeed);
-		if(!getLifes()){
+		if(getLifes() < 0){
 			saveScore();
 		}
 	}
