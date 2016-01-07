@@ -18,7 +18,7 @@ void printStartTunnel();
 static int tunnelEdges[2];
 static int tunnelDirection;
 static int totalLines;
-static char scoreLevelBuffer[32];
+static char scoreLevelBuffer[31];
 static char gameMode;
 int gameSpeed;
 
@@ -50,7 +50,7 @@ void initLevel(){
 	for(int i = 0; i < sizeof(scoreLevelBuffer); i++){
 		scoreLevelBuffer[i] = '#';
 	}
-	scoreLevelBuffer[31] = '\n';
+	scoreLevelBuffer[31] = '\0';
 }
 
 
@@ -90,6 +90,9 @@ void levelLoop(){
 		printPlayerAction(playerInput);
 		refresh();
 		napms(gameSpeed);
+		if(!getLifes()){
+			saveScore();
+		}
 	}
 	nodelay(stdscr, FALSE);
 }
@@ -121,9 +124,9 @@ void addNextLine(){
 
 // Zeichnet bei jedem aufruf den Score und speichert die überschriebene Zeile
 void printScore() {
-	mvprintw(1, (COLS-33), scoreLevelBuffer);
-	mvinnstr(0, (COLS-33), scoreLevelBuffer, 31);
-	mvprintw(0, (COLS-33), "  Score: %09i Lifes: %02i  ", totalLines, getLifes());
+	mvprintw(1, (COLS-31), scoreLevelBuffer);
+	mvinnstr(0, (COLS-31), scoreLevelBuffer, 30);
+	mvprintw(0, (COLS-31), "  Score: %09i Lifes: %02i  ", totalLines, getLifes());
 }
 
 // Speichert den Score in einer txt
