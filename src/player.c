@@ -16,19 +16,21 @@ static int playerPos[2];
 static int lifes;
 static int godMode;
 static int shieldHP;
+static int diplayNewShip;
 
 // Setzt die Spielerdaten
 void initPlayer(){
-	playerSpaceShip = 'A';
+	playerSpaceShip = 'x';
 	playerInput = 'a';
 	lastInput = ' ';
 	playerSpawnPointLine = (LINES-4);
 	playerSpawnPointCol = (COLS/2);
 	playerPos[0] = playerSpawnPointLine;
 	playerPos[1] = playerSpawnPointCol;
-	lifes = 5;
-	godMode = -1;
+	lifes = 1;
+	godMode = 0;
 	shieldHP = 0;
+	diplayNewShip = 200;
 }
 
 void printPlayerAction(char playerInput){
@@ -70,6 +72,27 @@ void printPlayerAction(char playerInput){
 }
 
 void movePlayer(){
+
+	if( (getTotalLines()%250) == 0 ){
+		shieldHP += 50;
+		godMode = 1;
+	}
+	if( (getTotalLines()%5000) == 0 ){
+		lifes++;
+	}
+	if( (shieldHP >= 150) && ((playerSpaceShip == 'x') || (diplayNewShip > 0)) ){
+		playerSpaceShip = 'A';
+		char shipUpgrade[] = " !! SHIELDLEVEL SECURE !!  ";
+		int shipUpgradeLength = sizeof(shipUpgrade);
+		mvprintw( 2, ((COLS/2)-(shipUpgradeLength/2)), shipUpgrade);
+		diplayNewShip--;
+	}else if(diplayNewShip<200 && shieldHP<150){
+		playerSpaceShip = 'x';
+		char shipUpgrade[] = " !! SHIELDLEVEL CRITICAL !!  ";
+		int shipUpgradeLength = sizeof(shipUpgrade);
+		mvprintw( 2, ((COLS/2)-(shipUpgradeLength/2)), shipUpgrade);
+		diplayNewShip++;
+	}
 
 	char nextPos = ( mvinch(playerPos[0]-1, playerPos[1]) & A_CHARTEXT);
 
