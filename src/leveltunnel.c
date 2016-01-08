@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <ncurses.h>
+#include <string.h>
 
 #include "leveltunnel.h"
 #include "player.h"
@@ -14,15 +15,22 @@ void randomMode();
 void saveScore();
 void printStartTunnel();
 void addObject();
+void printClearLevelFromBuffer();
+void initLevelBuffer(char ***buffer);
+void freeBuffer(char ***buffer);
 
 
 // Tunnelsettings/daten
 static int tunnelEdges[2];
-static int tunnelDirection;
+static int tunnelDirection[2];
 static int totalLines;
 static char scoreLevelBuffer[31];
 static char gameMode;
 static int gameSpeed;
+static char **levelBuffer;
+char **oldLevelBuffer;
+static int bufferDimensions[2];
+
 char foreground;
 char background;
 
@@ -46,17 +54,18 @@ void initLevel(){
 	srand(time(NULL));
 
 	//Tunneldaten setzten
-	foreground = '#';
+	foreground = '.';
 	background = ' ';
 	tunnelEdges[0] = COLS * 0.4;
 	tunnelEdges[1] = COLS * 0.6;
-	tunnelDirection = 1;
+	tunnelDirection[0] = 1;
+	tunnelDirection[1] = 1;
 	totalLines = 0;
 	gameSpeed = 33;
-	for(int i = 0; i < sizeof(scoreLevelBuffer); i++){
-		scoreLevelBuffer[i] = foreground;
-	}
-	scoreLevelBuffer[31] = '\0';
+	bufferDimensions[0] = 3;
+	bufferDimensions[1] = COLS;
+	initLevelBuffer(&levelBuffer);
+	initLevelBuffer(&oldLevelBuffer);
 }
 
 
@@ -66,8 +75,14 @@ void printStartTunnel(){
 		for(int x = 0; x < COLS; x++){
 			if( (tunnelEdges[0] < x) && (tunnelEdges[1] > x) ){
 				mvaddch(i, x, background);
+				if(i < bufferDimensions[0]){
+					levelBuffer[i][x] = background;
+				}
 			}else{
 				mvaddch(i, x, foreground);
+				if(i < bufferDimensions[0]){
+					levelBuffer[i][x] = foreground;
+				}
 			}
 		}
 	}
@@ -88,14 +103,16 @@ void levelLoop(){
 			playerInput = getch();
 			nodelay(stdscr, TRUE);
 		}
+
+		addNextLine();
 		if(gameMode == 'r') {
 			randomMode();
 		}
-		addNextLine();
-
-		addObject();
+		//addObject();
+		printClearLevelFromBuffer();
 		printScore();
 		printPlayerAction(playerInput);
+		printScore();
 		refresh();
 		napms(gameSpeed);
 		if(getLifes() < 0){
@@ -114,8 +131,8 @@ void addNextLine(){
 	insertln();
 
 	(totalLines)++;
-	tunnelEdges[0] += tunnelDirection;
-	tunnelEdges[1] += tunnelDirection;
+	tunnelEdges[0] += tunnelDirection[0];
+	tunnelEdges[1] += tunnelDirection[1];
 	for(int i = 0; i < COLS; i++){
 		if( (i > tunnelEdges[0]) && (i < tunnelEdges[1])){
 			mvaddch(0, i, background);
@@ -124,17 +141,43 @@ void addNextLine(){
 		}
 	}
 	if(tunnelEdges[0] < 2){
-		tunnelDirection = 1;
-	}else if( tunnelEdges[1] > (COLS - 3) ){
-		tunnelDirection = -1;
+		tunnelDirection[0] = 1;
+		tunnelDirection[1] = 1;
+	}else if( tunnelEdges[1] > (COLS - 3)){
+		tunnelDirection[0] = -1;
+		tunnelDirection[1] = -1;
 	}
+}
+
+// Zeichnet die überschriebenen Lines wieder nach
+void printClearLevelFromBuffer(){
+
+	// wiedeherstellung der 3 Zeile ( [2] )!
+	mvprintw(bufferDimensions[0], 0, "%s", levelBuffer[bufferDimensions[0]-1]);
+
+	// Kopiert das alte level in einen Zwischenspeicher
+	initLevelBuffer(&oldLevelBuffer);
+	for(int a = 0; a < bufferDimensions[0]; a++){
+		strcpy(oldLevelBuffer[a], levelBuffer[a]);
+	}
+	freeBuffer(&levelBuffer);
+	initLevelBuffer(&levelBuffer);
+	// schreibt die neue levelZeile in den Buffer
+	for(int i = 0; i < bufferDimensions[1]; i++){
+		levelBuffer[0][i] = (mvinch(0, i) & A_CHARTEXT);
+	}
+	// schreibt die alten levelZeilen aus dem altem oldLevelBuffer in den neuen
+	for(int i = 1; i < bufferDimensions[0]; i++){
+		strcpy(levelBuffer[i], oldLevelBuffer[i-1]);
+	}
+	freeBuffer(&oldLevelBuffer);
 }
 
 // Zeichnet bei jedem aufruf den Score und speichert die überschriebene Zeile
 void printScore() {
-	mvprintw(1, (COLS-31), scoreLevelBuffer);
-	mvinnstr(0, (COLS-31), scoreLevelBuffer, 30);
-	mvprintw(0, (COLS-31), "  Score: %09i Lifes: %02i  ", totalLines, getLifes());
+	mvprintw(0, (COLS-20), "  Score: %9i  ", totalLines);
+	mvprintw(1, (COLS-20), "  Lifes: %9i  ", getLifes());
+	mvprintw(2, (COLS-20), "  Shield: %8i  ", getShieldHP());
 }
 
 // Speichert den Score in einer txt
@@ -150,27 +193,24 @@ void saveScore(){
 	fclose(f);
 }
 
+
+
 void randomMode(){
-	switch ( rand()%10 ) {
-		case 0: tunnelDirection = 1; break;
-		case 1: tunnelDirection = -1; break;
+	switch ( rand()%30 ) {
+		case 0: tunnelDirection[0] *= -1; tunnelDirection[1] *= -1; break;
+		case 1: tunnelDirection[0] *= -1; tunnelDirection[1] *= -1;break;
 		default: break;
 	}
 }
 
 void addObject(){
-	char object = 0;
-	switch (rand()%100) {
-		case 0: object = '$'; break;
-		case 1: object = foreground; break;
-		default: break;
-	}
-	if(object){
-		int *edges = getLineEdges(0);
-		int objCol = edges[0] + ( rand() % (edges[1]-edges[0]) ) + 1;
-		mvaddch(0, objCol, object);
-	}
-
+	char baddie = '-';
+	char cookie = '+';
+	int *edges = getLineEdges(0);
+	int middle = edges[0] + (edges[1]-edges[0])/2;
+	mvaddch(0, edges[0]+1, baddie);
+	mvaddch(0, middle, cookie);
+	mvaddch(0, edges[1]-1, baddie);
 }
 
 /////////////////////// END LEVEL LOOP METHODEN////////////////
@@ -181,7 +221,6 @@ int getTotalLines(){
 
 int * getLineEdges(int line){
 	static int edges[2];
-
 	for(int i = 0; i < COLS; i++){
 		if( (mvinch(line, i) & A_CHARTEXT) == background){
 			edges[0] = (i-1);
@@ -195,4 +234,19 @@ int * getLineEdges(int line){
 		}
 	}
 	return edges;
+}
+
+void initLevelBuffer(char ***buffer){
+
+	*buffer = calloc(bufferDimensions[0], sizeof(char*));
+	for(int i = 0; i < bufferDimensions[0]; i++){
+		(*buffer)[i] = calloc(bufferDimensions[1], sizeof(char));
+	}
+}
+
+void freeBuffer(char ***buffer){
+	for(int i = 0; i < bufferDimensions[0]; i++){
+		free((*buffer)[i]);
+	}
+	free(*buffer);
 }

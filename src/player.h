@@ -3,4 +3,5 @@
 void initPlayer();
 void printPlayerAction(char playerInput);
 int getLifes();
+int getShieldHP();
 #endif
