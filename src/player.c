@@ -20,7 +20,7 @@ static int diplayNewShip;
 
 // Setzt die Spielerdaten
 void initPlayer(){
-	playerSpaceShip = 'x';
+	playerSpaceShip = 'A';
 	playerInput = 'a';
 	lastInput = ' ';
 	playerSpawnPointLine = (LINES-4);
