@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <ncurses.h>
-#include <string.h>
-
 #include "leveltunnel.h"
 #include "player.h"
 
@@ -24,7 +22,6 @@ void freeBuffer(char ***buffer);
 static int tunnelEdges[2];
 static int tunnelDirection[2];
 static int totalLines;
-static char scoreLevelBuffer[31];
 static char gameMode;
 static int gameSpeed;
 static char **levelBuffer;
@@ -104,6 +101,10 @@ void levelLoop(){
 			nodelay(stdscr, TRUE);
 		}
 
+		if( (totalLines%100) == 0){
+			gameSpeed--;
+		}
+
 		addNextLine();
 		if(gameMode == 'r') {
 			randomMode();
@@ -157,8 +158,10 @@ void printClearLevelFromBuffer(){
 
 	// Kopiert das alte level in einen Zwischenspeicher
 	initLevelBuffer(&oldLevelBuffer);
-	for(int a = 0; a < bufferDimensions[0]; a++){
-		strcpy(oldLevelBuffer[a], levelBuffer[a]);
+	for(int i = 0; i < bufferDimensions[0]; i++){
+		for(int j = 0; j < bufferDimensions[1]; j++){
+			oldLevelBuffer[i][j] = levelBuffer[i][j];
+		}
 	}
 	freeBuffer(&levelBuffer);
 	initLevelBuffer(&levelBuffer);
@@ -168,7 +171,9 @@ void printClearLevelFromBuffer(){
 	}
 	// schreibt die alten levelZeilen aus dem altem oldLevelBuffer in den neuen
 	for(int i = 1; i < bufferDimensions[0]; i++){
-		strcpy(levelBuffer[i], oldLevelBuffer[i-1]);
+		for(int j = 0; j < bufferDimensions[1]; j++){
+			levelBuffer[i][j] = oldLevelBuffer[i-1][j];
+		}
 	}
 	freeBuffer(&oldLevelBuffer);
 }
@@ -249,4 +254,12 @@ void freeBuffer(char ***buffer){
 		free((*buffer)[i]);
 	}
 	free(*buffer);
+}
+
+int getGameSpeed(){
+	return gameSpeed;
+}
+
+void setGameSpeed(int newGameSpeed){
+	gameSpeed = newGameSpeed;
 }
