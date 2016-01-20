@@ -113,7 +113,7 @@ void movePlayer(){
 			refresh();
 			napms(100);
 		}
-		int *edges = getLineEdges(playerSpawnPointLine);
+		int *edges = getLineEdges(playerSpawnPointLine-2);
 		playerSpawnPointCol = edges[0] + ((edges[1]-edges[0])/2);
 		lifes--;
 		playerPos[0] = playerSpawnPointLine;
