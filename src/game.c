@@ -3,6 +3,7 @@
 
 #include "game.h"
 #include "leveltunnel.h"
+#include "snake.h"
 
 
 char printStartMenu();
@@ -22,7 +23,13 @@ void startGame(){
 	// Menu Loop
 	while((gameModeChoice = printStartMenu()) != 'q'){
 		switch(gameModeChoice){
-			default:runLevel(gameModeChoice);
+
+			case 'c': runLevel(gameModeChoice); break;
+			case 'r': runLevel(gameModeChoice); break;
+			case 's': runSnake(); break;
+			default: break;
+			clear();
+			refresh();
 		}
 	}
 	endwin();
@@ -33,18 +40,23 @@ void startGame(){
 char printStartMenu(){
 	clear();
 	move(0,0);
-	char gameName[] = "Tunnel -chillmode (anykey)";
-	int gameNameLength = sizeof(gameName);
-	mvprintw( (LINES/2), ((COLS/2)-(gameNameLength/2)), gameName);
+	int stringLength;
+	char tunnelChillMode[] = "Tunnel -chillmode (c)";
+	stringLength = sizeof(tunnelChillMode);
+	mvprintw( (LINES/2), ((COLS/2)-(stringLength/2)), tunnelChillMode);
 
-	char gameName1[] = "Tunnel -random (r)";
-	int gameNameLength1 = sizeof(gameName1);
-	mvprintw( (LINES/2) + 1, ((COLS/2)-(gameNameLength1/2)), gameName1);
+	char tunnelRandom[] = "Tunnel -random (r)";
+	stringLength = sizeof(tunnelRandom);
+	mvprintw( (LINES/2) + 1, ((COLS/2)-(stringLength/2)), tunnelRandom);
+
+	char snake[] = "SNAKE (s)";
+	stringLength = sizeof(snake);
+	mvprintw( (LINES/2) + 2, ((COLS/2)-(stringLength/2)), snake);
 
 
 	char quit[] = "quit (q)";
-	int quitLength = sizeof(quit);
-	mvprintw( ( (LINES/2) + 2), ((COLS/2)-(quitLength/2)), quit);
+	stringLength = sizeof(quit);
+	mvprintw( ( (LINES/2) + 3), ((COLS/2)-(stringLength/2)), quit);
 	refresh();
 	return getch();
 }

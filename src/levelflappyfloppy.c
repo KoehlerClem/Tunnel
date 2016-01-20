@@ -19,17 +19,12 @@ void freeBuffer(char ***buffer);
 
 
 // Tunnelsettings/daten
-static int tunnelEdges[2];
-static int tunnelDirection[2];
 static int totalLines;
 static char gameMode;
 static int gameSpeed;
-static char **levelBuffer;
-static char **oldLevelBuffer;
-static int bufferDimensions[2];
-
 char foreground;
 char background;
+char wall;
 
 
 // Hier läuft das ganze Spiel ab
@@ -51,25 +46,18 @@ void initLevel(){
 	srand(time(NULL));
 
 	//Tunneldaten setzten
-	foreground = '.';
+	foreground = '#';
 	background = ' ';
-	tunnelEdges[0] = COLS * 0.4;
-	tunnelEdges[1] = COLS * 0.6;
-	tunnelDirection[0] = 1;
-	tunnelDirection[1] = 1;
+	wall = 'X';
 	totalLines = 0;
 	gameSpeed = 33;
-	bufferDimensions[0] = 3;
-	bufferDimensions[1] = COLS;
-	initLevelBuffer(&levelBuffer);
-	initLevelBuffer(&oldLevelBuffer);
 }
 
 
 // Zeichnet den geraden Starttunnel
 void printStartTunnel(){
 	for(int i = 0; i < LINES; i++){
-		for(int x = 0; x < COLS; x++){
+		for(int j = 0; j < COLS; j++){
 			if( (tunnelEdges[0] < x) && (tunnelEdges[1] > x) ){
 				mvaddch(i, x, background);
 				if(i < bufferDimensions[0]){
