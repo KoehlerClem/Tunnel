@@ -241,6 +241,8 @@ int * getLineEdges(int line){
 	return edges;
 }
 
+// Param: Ein Pointer auf ein char-Array was nach
+// einem Koordinatensystem geordnet ist (2dim., lines, cols)
 void initLevelBuffer(char ***buffer){
 
 	*buffer = calloc(bufferDimensions[0], sizeof(char*));

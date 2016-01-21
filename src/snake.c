@@ -2,17 +2,18 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "game.h"
 #include "snake.h"
 
 
 void initSnake();
 void snakeLevelLoop();
 void moveHead();
-void deleteTail();
 void setCake();
 void checkNextField();
 void exitSnake();
+void initPlayerObject();
+void freePlayerObject();
+void updatePlayerObject();
 
 // Deklaration der Variablen
 static char player;
@@ -24,17 +25,14 @@ static int lifes;
 static int length;
 static int headPos[2];
 static int cakeSet;
+static int cakesFound;
 
-static int addOne;
 static int maxLength;
 static int counter;
 static int gameSpeed;
 
-typedef struct snakeElem{
-	int coord[2];
-	struct snakeElem *prevElem;
-	struct snakeElem *nextElem;
-} snakeElem;
+// Spielerobject[SnakeElemPos][LinePos][ColPos]
+static int (*playerObject)[2];
 
 // In dieser Funktion läuft das
 // gesamte Snake-Spiel ab
@@ -61,24 +59,15 @@ void initSnake(){
 	lifes = 1;
 	length = 0;
 	cakeSet = 0;
-	addOne = 2;
-	counter = 0;
+	cakesFound = 2;
 	gameSpeed = 66;
 	maxLength = LINES*COLS;
 
 	headPos[0] = LINES/2;
 	headPos[1] = COLS/2;
-
-	snakeElem headElem;
-	headElem.coord[0] = headPos[0];
-	headElem.coord[1] = headPos[1];
-
+	initPlayerObject();
 
 	srand(time(NULL));
-
-
-	//Setzt den Spieler in die Mitte
-	mvaddch(headPos[0], headPos[1], player);
 }
 
 // Soland man ein Leben hat (=nicht kollidiert) oder
@@ -86,13 +75,11 @@ void initSnake(){
 void snakeLevelLoop(){
 
 	while( (lifes != 0) && ( (playerInput=getch()) != 'q') ){
-		counter++;
-		counter%maxLength;
 		moveHead();
-		deleteTail();
 		setCake();
+		updatePlayerObject();
 		refresh();
-		napms(gameSpeed);
+		napms(200);
 	}
 }
 
@@ -158,8 +145,22 @@ void moveHead(){
 	}
 }
 
-void deleteTail(){
+void updatePlayerObject(){
 
+	if(cakesFound > 0){
+		cakesFound--;
+		length++;
+	}else{
+		mvaddch(playerObject[length][0], playerObject[length][1], '.');
+	}
+
+	for(int i = length; i > 0; i--){
+		playerObject[length][0] = playerObject[length-1][0];
+		playerObject[length][1] = playerObject[length-1][1];
+	}
+
+	playerObject[0][0] = headPos[0];
+	playerObject[0][1] = headPos[1];
 }
 
 void setCake(){
@@ -179,14 +180,28 @@ void setCake(){
 
 void checkNextField(){
 	if ( (mvinch(headPos[0], headPos[1]) & A_CHARTEXT) == cake){
-		length++;
 		cakeSet = 0;
-	}
-	if ((mvinch(headPos[0], headPos[1]) & A_CHARTEXT) == player){
+		cakesFound++;
+	}else if(
+		(mvinch(headPos[0], headPos[1]) & A_CHARTEXT) == player){
 		lifes--;
 	}
 }
 
 void exitSnake(){
+	freePlayerObject();
 	nodelay(stdscr, FALSE);
+}
+
+void initPlayerObject(){
+
+	playerObject = malloc(maxLength * 2 * sizeof(int));
+
+	playerObject[0][0] = headPos[0];
+	playerObject[0][1] = headPos[1];
+
+}
+
+void freePlayerObject(){
+	free(playerObject);
 }
