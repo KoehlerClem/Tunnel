@@ -76,10 +76,15 @@ void snakeLevelLoop(){
 
 	while( (lifes != 0) && ( (playerInput=getch()) != 'q') ){
 		moveHead();
-		setCake();
 		updatePlayerObject();
+		setCake();
 		refresh();
-		napms(200);
+		if(lastInput == 'w' || lastInput=='s'){
+			napms(2000/LINES);
+		}else{
+			napms(2000/COLS);
+		}
+
 	}
 }
 
@@ -97,7 +102,6 @@ void moveHead(){
 
 	// Checkt nach den Richtungen und ob Terminalkante erreicht
 	if(playerInput == 'a' && lastInput != 'd'){
-		gameSpeed = 66;
 		if(headPos[1] == 0){
 
 			mvaddch(headPos[0], headPos[1], bg);
@@ -109,7 +113,6 @@ void moveHead(){
 		}
 		lastInput = 'a';
 	}else if(playerInput == 'd' && lastInput != 'a'){
-		gameSpeed = 66;
 		if(headPos[1] == COLS-1){
 			mvaddch(headPos[0], headPos[1], bg);
 			lifes--;
@@ -120,7 +123,6 @@ void moveHead(){
 		}
 		lastInput = 'd';
 	}else if(playerInput == 'w' && lastInput != 's'){
-		gameSpeed = 180;
 		if(headPos[0] == 0){
 			mvaddch(headPos[0], headPos[1], bg);
 			lifes--;
@@ -132,7 +134,6 @@ void moveHead(){
 		lastInput = 'w';
 
 	}else if(playerInput == 's' && lastInput != 'w'){
-		gameSpeed = 180;
 		if(headPos[0] == LINES-1){
 			mvaddch(headPos[0], headPos[1], bg);
 			lifes--;
@@ -151,16 +152,18 @@ void updatePlayerObject(){
 		cakesFound--;
 		length++;
 	}else{
-		mvaddch(playerObject[length][0], playerObject[length][1], '.');
+		mvaddch(playerObject[length][0], playerObject[length][1], bg);
 	}
+
 
 	for(int i = length; i > 0; i--){
-		playerObject[length][0] = playerObject[length-1][0];
-		playerObject[length][1] = playerObject[length-1][1];
+		playerObject[i][0] = playerObject[i-1][0];
+		playerObject[i][1] = playerObject[i-1][1];
 	}
-
 	playerObject[0][0] = headPos[0];
 	playerObject[0][1] = headPos[1];
+
+
 }
 
 void setCake(){

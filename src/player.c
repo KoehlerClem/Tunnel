@@ -65,14 +65,6 @@ void printPlayerAction(char playerInput){
 	}else if((lastInput == 'd') && (playerPos[1] < COLS-1)){
 		playerPos[1]++;
 	}
-	if(playerInput == ' '){
-		int gameSpeed = getGameSpeed();
-		if(shieldHP < 150){
-			setGameSpeed ( (gameSpeed=gameSpeed+12) );
-		}else{
-			setGameSpeed( (gameSpeed=gameSpeed-7) );
-		}
-	}
 	movePlayer();
 }
 

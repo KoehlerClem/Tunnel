@@ -101,8 +101,11 @@ void levelLoop(){
 			nodelay(stdscr, TRUE);
 		}
 
-		if( (totalLines%100) == 0){
-			gameSpeed--;
+		if( (totalLines%1500) == 0){
+			gameSpeed *= 0.95;
+		}
+		if( getShieldHP() == 500){
+			gameSpeed = 33;
 		}
 
 		addNextLine();
